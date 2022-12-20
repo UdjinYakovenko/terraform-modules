@@ -1,0 +1,64 @@
+{
+    "variables" : {
+        "ssh_username": "ec2-user",
+        "region": "eu-central-1",
+        "instance_type": "t2.medium",
+        "profile": "NDC"
+  },
+    
+    "builders": [
+        {
+          "type": "amazon-ebs",
+          "profile": "{{user `profile` }}",
+          "region": "{{user `region` }}",
+          "source_ami_filter": {
+            "filters": {
+              "virtualization-type": "hvm",
+              "name": "amzn2-ami-hvm-2.0.*.1-x86_64-gp2",
+              "root-device-type": "ebs"
+            },
+            "most_recent": true,
+            "owners": ["amazon"]            
+          },
+          "temporary_iam_instance_profile_policy_document": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": "*",
+                "Resource": "*"
+              }
+            ]
+          },
+          "associate_public_ip_address": "false",
+          "instance_type": "{{user `instance_type` }}",
+          "ssh_username": "{{user `ssh_username`}}",
+          "ami_name": "ELK {{timestamp}}",
+	            "tags":{
+              "Name": "ELK {{timestamp}}",
+              "OS_Version": "Amazon Linux 2",
+              "Release": "Latest"
+	            }
+          }
+      ],
+    "provisioners" : [
+      {
+      "type": "file",
+      "source": "docker_elk",
+      "destination": "/home/ec2-user/"
+      },{
+      "type": "shell",
+      "inline": [
+        "sudo yum update -y",
+        "sudo yum install docker -y",
+        "sudo systemctl enable docker",
+        "sudo usermod -a -G docker ec2-user",  
+        "sudo systemctl start docker", 
+        "sudo pip3 install -U docker-compose",
+        "sudo chmod -R 777 /var/run/docker.sock",
+        "cd /home/ec2-user/docker_elk/",
+        "docker-compose up -d"
+        ]
+      }
+   ]
+}

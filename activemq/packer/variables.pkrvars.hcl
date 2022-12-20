@@ -1,0 +1,5 @@
+vpc_id = "vpc-75a7880f"
+region = "us-east-1"
+subnet_id = "subnet-76af0d3b"
+profile = "ndc"
+designator = "activemq"
